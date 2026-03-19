@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Children's Place Party Builder</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(180deg, #FDF2F8 0%, #EDE9FE 50%, #DBEAFE 100%);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+      padding: 28px 20px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.08;
+      background-image:
+        radial-gradient(circle at 20% 50%, #fff 1px, transparent 1px),
+        radial-gradient(circle at 80% 20%, #fff 1.5px, transparent 1.5px),
+        radial-gradient(circle at 60% 80%, #fff 1px, transparent 1px);
+      background-size: 60px 60px, 80px 80px, 50px 50px;
+    }
+    .header-sub { font-size: 14px; font-weight: 700; color: #BBF7D0; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 4px; position: relative; }
+    .header-title {
+      font-family: 'Fredoka', sans-serif; font-size: 30px; font-weight: 700; color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      animation: float 3s ease-in-out infinite;
+      position: relative;
+    }
+    .header-desc { font-size: 14px; color: #BBF7D0; margin-top: 4px; position: relative; }
+
+    /* Steps */
+    .steps { display: flex; justify-content: center; gap: 4px; padding: 16px 12px 8px; flex-wrap: wrap; }
+    .step-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 6px 12px; border-radius: 20px; border: none;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      transition: all 0.3s ease;
+      background: #F3F4F6; color: #6B7280;
+    }
+    .step-btn.active { color: #fff; transform: scale(1.05); }
+
+    /* Content */
+    .content { max-width: 520px; margin: 0 auto; padding: 12px 16px 130px; }
+    .content.animate { animation: slideUp 0.4s ease; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .section-emoji { font-size: 28px; }
+    .section-title { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 22px; color: #1F2937; }
+    .section-step { font-size: 13px; color: #9CA3AF; }
+    .section-desc { font-size: 15px; color: #6B7280; margin: 0 0 10px; }
+
+    /* Cards */
+    .card-list { display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      position: relative;
+      background: #fff;
+      border: 2px solid #E5E7EB;
+      border-radius: 16px;
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(.4,0,.2,1);
+    }
+    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .card.selected {
+      background: linear-gradient(135deg, #FFF7ED, #FEF3C7);
+      border: 2.5px solid #F59E0B;
+      transform: scale(1.02);
+      box-shadow: 0 4px 20px rgba(245,158,11,0.2);
+    }
+    .card.selected-green {
+      background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+      border: 2.5px solid #10B981;
+      transform: scale(1.02);
+      box-shadow: 0 4px 20px rgba(16,185,129,0.2);
+    }
+    .card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .card-name { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 17px; color: #1F2937; margin-bottom: 4px; }
+    .card-meta { font-size: 13px; color: #6B7280; margin-bottom: 6px; }
+    .card-price { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 18px; color: #059669; white-space: nowrap; margin-top: 2px; }
+    .card.selected .card-price { color: #D97706; }
+    .card-check {
+      position: absolute; top: 10px; right: 12px;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #F59E0B; display: none;
+      align-items: center; justify-content: center;
+      color: #fff; font-size: 15px; font-weight: 700;
+    }
+    .card.selected .card-check, .card.selected-green .card-check { display: flex; }
+    .card.selected-green .card-check { background: #10B981; }
+
+    /* Flavor tags */
+    .flavors { display: flex; flex-wrap: wrap; gap: 4px; }
+    .flavor-tag {
+      font-size: 11px; padding: 2px 8px; border-radius: 10px;
+      background: #F3F4F6; color: #4B5563; font-weight: 500;
+    }
+    .flavor-tag.blue { background: #DBEAFE; color: #1E40AF; font-weight: 600; }
+    .flavor-tag.green { background: #DCFCE7; color: #166534; }
+
+    /* Upgrade panel */
+    .upgrade-panel {
+      background: #FFFBEB; border-radius: 16px; padding: 18px;
+      border: 2px dashed #FCD34D; margin-top: 4px;
+    }
+    .upgrade-title { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 15px; color: #92400E; margin-bottom: 10px; }
+    .upgrade-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .upgrade-chip {
+      padding: 6px 12px; border-radius: 20px; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: all 0.2s;
+      background: #FEF3C7; color: #92400E; border: 2px solid transparent;
+    }
+    .upgrade-chip.active { background: #F59E0B; color: #fff; border-color: #D97706; }
+    .upgrade-chip-price { font-weight: 400; opacity: 0.85; }
+
+    /* Cone stepper */
+    .cone-row { margin-top: 14px; display: flex; align-items: center; gap: 10px; }
+    .cone-label { font-size: 14px; color: #92400E; font-weight: 600; font-family: 'Fredoka', sans-serif; }
+    .cone-stepper { display: flex; align-items: center; gap: 6px; }
+    .cone-btn {
+      width: 30px; height: 30px; border-radius: 50%; border: 2px solid #D97706;
+      background: #FEF3C7; cursor: pointer; font-size: 16px; font-weight: 700;
+      color: #92400E; display: flex; align-items: center; justify-content: center;
+    }
+    .cone-count { font-size: 16px; font-weight: 700; min-width: 24px; text-align: center; color: #92400E; }
+
+    /* Drinks flavor panel */
+    .drinks-panel {
+      background: #F0FDF4; border-radius: 16px; padding: 16px;
+      border: 2px dashed #86EFAC; margin-top: 10px;
+    }
+    .drinks-panel-title { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 14px; color: #166534; margin-bottom: 8px; }
+    .drinks-cat-name { font-size: 12px; font-weight: 700; color: #15803D; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .drinks-cat { margin-bottom: 8px; }
+
+    /* Summary */
+    .summary-total {
+      background: linear-gradient(135deg, #7C3AED, #A78BFA);
+      border-radius: 16px; padding: 20px; color: #fff; text-align: center;
+    }
+    .summary-total-label { font-size: 14px; font-weight: 600; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.1em; }
+    .summary-total-amount { font-family: 'Fredoka', sans-serif; font-size: 42px; font-weight: 700; margin-top: 4px; }
+    .summary-total-count { font-size: 14px; opacity: 0.8; margin-top: 4px; }
+    .summary-item {
+      background: #fff; border-radius: 14px; padding: 14px 16px;
+      border: 1.5px solid #E5E7EB;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .summary-item-price { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 16px; color: #7C3AED; }
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; color: #fff; margin-right: 8px;
+    }
+    .summary-extras {
+      background: #FFFBEB; border-radius: 14px; padding: 14px 16px;
+      border: 1.5px solid #FCD34D;
+    }
+    .summary-extras-title { font-size: 13px; font-weight: 700; color: #92400E; margin-bottom: 6px; }
+    .summary-extras-row { display: flex; justify-content: space-between; font-size: 13px; color: #78350F; padding: 2px 0; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #9CA3AF; }
+    .empty-emoji { font-size: 48px; margin-bottom: 12px; }
+    .empty-title { font-family: 'Fredoka', sans-serif; font-size: 18px; }
+    .empty-desc { font-size: 14px; margin-top: 6px; }
+
+    /* Footer */
+    .footer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid #E5E7EB;
+      padding: 12px 16px; z-index: 50;
+    }
+    .footer-inner { max-width: 520px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-label { font-size: 12px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .footer-total { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 24px; color: #7C3AED; }
+    .footer-count { font-size: 12px; color: #9CA3AF; }
+    .footer-btns { display: flex; gap: 8px; }
+    .btn {
+      padding: 10px 20px; border-radius: 12px; border: none;
+      font-weight: 700; font-size: 14px; cursor: pointer;
+      font-family: 'Nunito', sans-serif; transition: all 0.2s;
+    }
+    .btn-back { background: #fff; color: #374151; border: 2px solid #E5E7EB; }
+    .btn-next { color: #fff; }
+    .btn-reset { background: #EF4444; color: #fff; }
+
+    /* Confetti */
+    .confetti-wrap { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 100; overflow: hidden; }
+    .confetti-piece {
+      position: absolute; top: -20px;
+      opacity: 0;
+      animation: confettiFall ease-in forwards;
+    }
+
+    @keyframes confettiFall {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-sub">Children's Place</div>
+    <div class="header-title">🎂 Party Builder</div>
+    <div class="header-desc">Build your dream birthday party package!</div>
+  </div>
+
+  <!-- Step tabs -->
+  <div class="steps" id="stepTabs"></div>
+
+  <!-- Content area -->
+  <div class="content" id="content"></div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-label">Running Total</div>
+        <div class="footer-total" id="footerTotal">₱0</div>
+        <div class="footer-count" id="footerCount">0 items</div>
+      </div>
+      <div class="footer-btns" id="footerBtns"></div>
+    </div>
+  </div>
+
+  <!-- Confetti container -->
+  <div class="confetti-wrap hidden" id="confetti"></div>
+
+<script>
+// ─── DATA ───
+const SAVORY = [
+  { id:"burger", name:"Burger Station", price:5000, servings:50, flavors:null },
+  { id:"cheesesticks", name:"Cheese Sticks", price:3500, servings:60, flavors:null },
+  { id:"chickenpoppers", name:"Chicken Poppers", price:4500, servings:60, flavors:["Taiwanese","Cheese","Barbeque","Sour Cream"] },
+  { id:"chickenskin", name:"Chicken Skin", price:4500, servings:60, flavors:["Original","Cheese","Barbeque","Sour Cream"] },
+  { id:"fries", name:"French Fries", price:4500, servings:60, flavors:["Cheese","Barbeque","Sour Cream"] },
+  { id:"hotdoggrill", name:"Hotdog Grill", price:1950, servings:60, flavors:null },
+  { id:"hotdogwaffle", name:"Hotdog Waffle", price:4000, servings:60, flavors:null },
+  { id:"pasta", name:"Pasta Station", price:6950, servings:60, flavors:["Bolognese","Carbonara","Oriental","Pesto"], note:"4 Sauces + Protein + Toppings" },
+  { id:"pizza", name:"Pizza", price:4200, servings:60, flavors:["Bacon","Cheese","Hawaiian","Italian Sausage","Mushroom"] },
+  { id:"popcorn", name:"Popcorn", price:1950, servings:80, flavors:["Cheese","Barbeque","Sour Cream"] },
+  { id:"siomai", name:"Siomai", price:3500, servings:60, flavors:["Fried","Steamed"] },
+  { id:"streetfood", name:"Street Food Mix + Iced Gulaman", price:5500, servings:60, flavors:["Kikiam","Fish Ball","Squid Ball","Hotdog"] },
+  { id:"sweetcorn", name:"Sweet Corn w/ Butter & Cheese", price:3000, servings:60, flavors:null },
+];
+
+const SWEET = [
+  { id:"candy", name:"Candy Station", price:3500, servings:60, flavors:null, note:"12 kinds of assorted premium gummy / sour candies" },
+  { id:"cottoncandy", name:"Cotton Candy", price:1950, servings:80, flavors:["Bubble Gum","Chocolate","Mango","Melon","Strawberry"] },
+  { id:"crepe", name:"Crepe", price:7500, servings:50, flavors:["Mango","Banana","Mango Banana","Biscoff","Nutella"] },
+  { id:"halohalo50", name:"Halo-Halo (50 cups)", price:6500, servings:50, flavors:null },
+  { id:"halohalo100", name:"Halo-Halo (100 cups)", price:12500, servings:100, flavors:null },
+];
+
+const SORBETES_OPTS = [
+  { id:"sorbetes2", name:"2-Flavor Sorbetes Cart", price:3800, servings:120, note:"Mango & Peanut + FREE 90 Sugar Cones", baseFlavors:["Mango","Peanut"] },
+  { id:"sorbetes3", name:"3-Flavor Sorbetes Cart", price:4200, servings:120, note:"Mango, Peanut & Cookies & Cream + FREE 90 Sugar Cones", baseFlavors:["Mango","Peanut","Cookies & Cream"] },
+];
+
+const SORBETES_UPGRADES = [
+  { flavor:"Avocado", price:400 }, { flavor:"Banana", price:300 },
+  { flavor:"Binagol", price:500 }, { flavor:"Blueberry", price:500 },
+  { flavor:"Cheese", price:300 }, { flavor:"Cherry", price:500 },
+  { flavor:"Chocolate", price:300 }, { flavor:"Cookies & Cream", price:300 },
+  { flavor:"Mango", price:400 }, { flavor:"Moron", price:500 },
+  { flavor:"Strawberry", price:500 }, { flavor:"Ube", price:300 },
+  { flavor:"Ube Cheese", price:500 },
+];
+
+const DRINKS = [
+  { id:"infinitea40", name:"Infinitea (40 cups)", price:6000, servings:40, note:"20 flavors, 12oz cups" },
+  { id:"infinitea60", name:"Infinitea (60 cups)", price:8500, servings:60, note:"20 flavors, 12oz cups" },
+  { id:"infinitea100", name:"Infinitea (100 cups)", price:10000, servings:100, note:"20 flavors, 12oz cups" },
+  { id:"infinitea150", name:"Infinitea (150 cups)", price:13900, servings:150, note:"20 flavors, 12oz cups" },
+  { id:"infinitea200", name:"Infinitea (200 cups)", price:18000, servings:200, note:"20 flavors, 12oz cups" },
+];
+
+const DRINK_CATS = [
+  { name:"Milk Tea", flavors:["Chocolate","Matcha","Oreo","Strawberry","Ube","Wintermelon"] },
+  { name:"Frappe", flavors:["Caramel","Choco Mousse","Cookies & Cream","Milo Godzilla","Strawberry Mousse","Vanilla"] },
+  { name:"Fruit Tea", flavors:["Blueberry","Green Apple","Lemon","Peach","Raspberry"] },
+  { name:"Iced Series", flavors:["Coffee","Matcha","Milo Godzilla"] },
+];
+
+const STEPS = [
+  { label:"Savory", emoji:"🍔", color:"#E74C3C" },
+  { label:"Sweet", emoji:"🍭", color:"#E91E8B" },
+  { label:"Sorbetes", emoji:"🍦", color:"#F39C12" },
+  { label:"Drinks", emoji:"🧋", color:"#2ECC71" },
+  { label:"Summary", emoji:"🎉", color:"#8B5CF6" },
+];
+
+// ─── STATE ───
+let currentStep = 0;
+const sel = { savory: {}, sweet: {}, sorbetes: null, sorbetesUpgrades: [], extraCones: 0, drink: null };
+
+// ─── HELPERS ───
+const peso = (n) => "\u20B1" + n.toLocaleString();
+
+function getTotal() {
+  let t = 0;
+  for (const id in sel.savory) { const it = SAVORY.find(i => i.id === id); if (it) t += it.price; }
+  for (const id in sel.sweet) { const it = SWEET.find(i => i.id === id); if (it) t += it.price; }
+  if (sel.sorbetes) {
+    const s = SORBETES_OPTS.find(i => i.id === sel.sorbetes);
+    if (s) t += s.price;
+    sel.sorbetesUpgrades.forEach(f => { const u = SORBETES_UPGRADES.find(i => i.flavor === f); if (u) t += u.price; });
+    t += sel.extraCones * 50;
+  }
+  if (sel.drink) { const d = DRINKS.find(i => i.id === sel.drink); if (d) t += d.price; }
+  return t;
+}
+
+function getCount() {
+  return Object.keys(sel.savory).length + Object.keys(sel.sweet).length + (sel.sorbetes ? 1 : 0) + (sel.drink ? 1 : 0);
+}
+
+function updateFooter() {
+  document.getElementById('footerTotal').textContent = peso(getTotal());
+  const c = getCount();
+  document.getElementById('footerCount').textContent = c + ' item' + (c !== 1 ? 's' : '');
+
+  const btns = document.getElementById('footerBtns');
+  btns.innerHTML = '';
+  if (currentStep > 0) {
+    const b = document.createElement('button');
+    b.className = 'btn btn-back';
+    b.textContent = 'Back';
+    b.onclick = () => goStep(currentStep - 1);
+    btns.appendChild(b);
+  }
+  if (currentStep < 4) {
+    const b = document.createElement('button');
+    b.className = 'btn btn-next';
+    b.textContent = 'Next \u2192';
+    b.style.background = STEPS[currentStep].color;
+    b.style.boxShadow = '0 4px 14px ' + STEPS[currentStep].color + '44';
+    b.onclick = () => goStep(currentStep + 1);
+    btns.appendChild(b);
+  } else {
+    const b = document.createElement('button');
+    b.className = 'btn btn-reset';
+    b.textContent = 'Start Over';
+    b.onclick = () => {
+      sel.savory = {}; sel.sweet = {}; sel.sorbetes = null;
+      sel.sorbetesUpgrades = []; sel.extraCones = 0; sel.drink = null;
+      goStep(0);
+    };
+    btns.appendChild(b);
+  }
+}
+
+// ─── TABS ───
+function renderTabs() {
+  const container = document.getElementById('stepTabs');
+  container.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'step-btn' + (i === currentStep ? ' active' : '');
+    if (i === currentStep) btn.style.background = s.color;
+    btn.innerHTML = '<span>' + s.emoji + '</span> ' + s.label;
+    btn.onclick = () => goStep(i);
+    container.appendChild(btn);
+  });
+}
+
+// ─── CARD BUILDER ───
+function makeCard(item, isSelected, colorClass) {
+  const div = document.createElement('div');
+  div.className = 'card' + (isSelected ? (' ' + (colorClass || 'selected')) : '');
+  let flavorsHTML = '';
+  if (item.flavors) {
+    flavorsHTML = '<div class="flavors">' + item.flavors.map(f => '<span class="flavor-tag">' + f + '</span>').join('') + '</div>';
+  }
+  if (item.baseFlavors) {
+    flavorsHTML = '<div class="flavors">' + item.baseFlavors.map(f => '<span class="flavor-tag blue">' + f + '</span>').join('') + '</div>';
+  }
+  div.innerHTML = `
+    <div class="card-check">\u2713</div>
+    <div class="card-row">
+      <div style="flex:1">
+        <div class="card-name">${item.name}</div>
+        <div class="card-meta">${item.servings} servings${item.note ? ' &middot; ' + item.note : ''}</div>
+        ${flavorsHTML}
+      </div>
+      <div class="card-price">${peso(item.price)}</div>
+    </div>`;
+  return div;
+}
+
+// ─── RENDER STEPS ───
+function renderSavory() {
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  el.appendChild(sectionHeader(0));
+  const desc = document.createElement('p');
+  desc.className = 'section-desc';
+  desc.textContent = 'Pick your savory party carts. Mix and match to feed the crowd!';
+  el.appendChild(desc);
+  const list = document.createElement('div');
+  list.className = 'card-list';
+  SAVORY.forEach(item => {
+    const card = makeCard(item, !!sel.savory[item.id]);
+    card.onclick = () => {
+      if (sel.savory[item.id]) delete sel.savory[item.id]; else sel.savory[item.id] = true;
+      renderSavory(); updateFooter();
+    };
+    list.appendChild(card);
+  });
+  el.appendChild(list);
+}
+
+function renderSweet() {
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  el.appendChild(sectionHeader(1));
+  const desc = document.createElement('p');
+  desc.className = 'section-desc';
+  desc.textContent = 'Add some sweetness to the party!';
+  el.appendChild(desc);
+  const list = document.createElement('div');
+  list.className = 'card-list';
+  SWEET.forEach(item => {
+    const card = makeCard(item, !!sel.sweet[item.id]);
+    card.onclick = () => {
+      if (sel.sweet[item.id]) delete sel.sweet[item.id]; else sel.sweet[item.id] = true;
+      renderSweet(); updateFooter();
+    };
+    list.appendChild(card);
+  });
+  el.appendChild(list);
+}
+
+function renderSorbetes() {
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  el.appendChild(sectionHeader(2));
+  const desc = document.createElement('p');
+  desc.className = 'section-desc';
+  desc.textContent = 'Choose a sorbetes cart, then customize your flavors!';
+  el.appendChild(desc);
+  const list = document.createElement('div');
+  list.className = 'card-list';
+
+  SORBETES_OPTS.forEach(item => {
+    const card = makeCard(item, sel.sorbetes === item.id);
+    card.onclick = () => {
+      if (sel.sorbetes === item.id) { sel.sorbetes = null; sel.sorbetesUpgrades = []; sel.extraCones = 0; }
+      else { sel.sorbetes = item.id; sel.sorbetesUpgrades = []; sel.extraCones = 0; }
+      renderSorbetes(); updateFooter();
+    };
+    list.appendChild(card);
+  });
+  el.appendChild(list);
+
+  if (sel.sorbetes) {
+    const panel = document.createElement('div');
+    panel.className = 'upgrade-panel';
+    panel.innerHTML = '<div class="upgrade-title">\uD83D\uDD04 Swap a flavor (additional charge)</div>';
+
+    const chips = document.createElement('div');
+    chips.className = 'upgrade-chips';
+    SORBETES_UPGRADES.forEach(u => {
+      const chip = document.createElement('div');
+      chip.className = 'upgrade-chip' + (sel.sorbetesUpgrades.includes(u.flavor) ? ' active' : '');
+      chip.innerHTML = u.flavor + ' <span class="upgrade-chip-price">+' + peso(u.price) + '</span>';
+      chip.onclick = (e) => {
+        e.stopPropagation();
+        const idx = sel.sorbetesUpgrades.indexOf(u.flavor);
+        if (idx >= 0) sel.sorbetesUpgrades.splice(idx, 1); else sel.sorbetesUpgrades.push(u.flavor);
+        renderSorbetes(); updateFooter();
+      };
+      chips.appendChild(chip);
+    });
+    panel.appendChild(chips);
+
+    const coneRow = document.createElement('div');
+    coneRow.className = 'cone-row';
+    coneRow.innerHTML = `
+      <span class="cone-label">Extra Sugar Cones (18 pcs = \u20B150):</span>
+      <div class="cone-stepper">
+        <button class="cone-btn" id="coneMinus">\u2212</button>
+        <span class="cone-count" id="coneCount">${sel.extraCones}</span>
+        <button class="cone-btn" id="conePlus">+</button>
+      </div>`;
+    panel.appendChild(coneRow);
+    el.appendChild(panel);
+
+    document.getElementById('coneMinus').onclick = (e) => { e.stopPropagation(); sel.extraCones = Math.max(0, sel.extraCones - 1); renderSorbetes(); updateFooter(); };
+    document.getElementById('conePlus').onclick = (e) => { e.stopPropagation(); sel.extraCones++; renderSorbetes(); updateFooter(); };
+  }
+}
+
+function renderDrinks() {
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  el.appendChild(sectionHeader(3));
+  const desc = document.createElement('p');
+  desc.className = 'section-desc';
+  desc.textContent = 'Choose an Infinitea drink package for your guests!';
+  el.appendChild(desc);
+  const list = document.createElement('div');
+  list.className = 'card-list';
+  DRINKS.forEach(item => {
+    const card = makeCard(item, sel.drink === item.id, 'selected-green');
+    card.onclick = () => {
+      sel.drink = sel.drink === item.id ? null : item.id;
+      renderDrinks(); updateFooter();
+    };
+    list.appendChild(card);
+  });
+  el.appendChild(list);
+
+  // Flavor reference panel
+  const panel = document.createElement('div');
+  panel.className = 'drinks-panel';
+  panel.innerHTML = '<div class="drinks-panel-title">Available Drink Flavors</div>';
+  DRINK_CATS.forEach(cat => {
+    const d = document.createElement('div');
+    d.className = 'drinks-cat';
+    d.innerHTML = '<div class="drinks-cat-name">' + cat.name + '</div><div class="flavors">' +
+      cat.flavors.map(f => '<span class="flavor-tag green">' + f + '</span>').join('') + '</div>';
+    panel.appendChild(d);
+  });
+  el.appendChild(panel);
+}
+
+function renderSummary() {
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  el.appendChild(sectionHeader(4));
+
+  const items = [];
+  const catColors = { Savory:"#EF4444", Sweet:"#EC4899", Sorbetes:"#F59E0B", Drinks:"#10B981" };
+  for (const id in sel.savory) { const it = SAVORY.find(i => i.id === id); if (it) items.push({...it, category:"Savory"}); }
+  for (const id in sel.sweet) { const it = SWEET.find(i => i.id === id); if (it) items.push({...it, category:"Sweet"}); }
+  if (sel.sorbetes) { const s = SORBETES_OPTS.find(i => i.id === sel.sorbetes); if (s) items.push({...s, category:"Sorbetes"}); }
+  if (sel.drink) { const d = DRINKS.find(i => i.id === sel.drink); if (d) items.push({...d, category:"Drinks"}); }
+
+  if (items.length === 0) {
+    el.innerHTML += '<div class="empty-state"><div class="empty-emoji">🎈</div><div class="empty-title">No items selected yet!</div><div class="empty-desc">Go back and pick some party carts.</div></div>';
+    return;
+  }
+
+  // Total card
+  const total = document.createElement('div');
+  total.className = 'summary-total';
+  total.innerHTML = `
+    <div class="summary-total-label">Your Party Total</div>
+    <div class="summary-total-amount">${peso(getTotal())}</div>
+    <div class="summary-total-count">${items.length} cart${items.length !== 1 ? 's' : ''} selected</div>`;
+  el.appendChild(total);
+
+  const list = document.createElement('div');
+  list.className = 'card-list';
+  list.style.marginTop = '12px';
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'summary-item';
+    row.innerHTML = `
+      <div>
+        <div style="display:flex;align-items:center;margin-bottom:4px">
+          <span class="badge" style="background:${catColors[item.category]}">${item.category}</span>
+          <span style="font-family:'Fredoka',sans-serif;font-weight:600;font-size:15px">${item.name}</span>
+        </div>
+        <div style="font-size:13px;color:#6B7280">${item.servings} servings</div>
+      </div>
+      <div class="summary-item-price">${peso(item.price)}</div>`;
+    list.appendChild(row);
+  });
+  el.appendChild(list);
+
+  // Sorbetes upgrades
+  if (sel.sorbetes && sel.sorbetesUpgrades.length > 0) {
+    const extras = document.createElement('div');
+    extras.className = 'summary-extras';
+    extras.style.marginTop = '12px';
+    extras.innerHTML = '<div class="summary-extras-title">Sorbetes Flavor Swaps</div>';
+    sel.sorbetesUpgrades.forEach(flavor => {
+      const u = SORBETES_UPGRADES.find(i => i.flavor === flavor);
+      if (u) extras.innerHTML += '<div class="summary-extras-row"><span>' + flavor + '</span><span>+' + peso(u.price) + '</span></div>';
+    });
+    el.appendChild(extras);
+  }
+
+  // Extra cones
+  if (sel.extraCones > 0) {
+    const cones = document.createElement('div');
+    cones.className = 'summary-extras';
+    cones.style.marginTop = '8px';
+    cones.innerHTML = '<div class="summary-extras-row"><span style="font-weight:600">Extra Sugar Cones \u00D7 ' + sel.extraCones + '</span><span style="font-weight:600">' + peso(sel.extraCones * 50) + '</span></div>';
+    el.appendChild(cones);
+  }
+
+  fireConfetti();
+}
+
+// ─── SECTION HEADER ───
+function sectionHeader(i) {
+  const div = document.createElement('div');
+  div.className = 'section-header';
+  div.innerHTML = `
+    <span class="section-emoji">${STEPS[i].emoji}</span>
+    <div>
+      <div class="section-title">${STEPS[i].label}${i < 4 ? ' Carts' : ''}</div>
+      <div class="section-step">Step ${i + 1} of 5</div>
+    </div>`;
+  return div;
+}
+
+// ─── CONFETTI ───
+function fireConfetti() {
+  const wrap = document.getElementById('confetti');
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = '';
+  const colors = ["#FF6B6B","#4ECDC4","#FFE66D","#A78BFA","#F472B6","#34D399","#FB923C"];
+  for (let i = 0; i < 50; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    const size = 8 + Math.random() * 8;
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (2 + Math.random() * 2) + 's';
+    p.style.animationDelay = (Math.random() * 1.5) + 's';
+    p.style.transform = 'rotate(' + (Math.random() * 360) + 'deg)';
+    wrap.appendChild(p);
+  }
+  setTimeout(() => { wrap.classList.add('hidden'); wrap.innerHTML = ''; }, 4000);
+}
+
+// ─── NAVIGATION ───
+function goStep(i) {
+  currentStep = i;
+  const el = document.getElementById('content');
+  el.classList.remove('animate');
+  void el.offsetWidth; // force reflow
+  el.classList.add('animate');
+  renderTabs();
+  switch (i) {
+    case 0: renderSavory(); break;
+    case 1: renderSweet(); break;
+    case 2: renderSorbetes(); break;
+    case 3: renderDrinks(); break;
+    case 4: renderSummary(); break;
+  }
+  updateFooter();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── INIT ───
+goStep(0);
+</script>
+</body>
+</html>
